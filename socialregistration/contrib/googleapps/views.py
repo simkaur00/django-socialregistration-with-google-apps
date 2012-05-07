@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from socialregistration.views import SetupCallback
 from socialregistration.contrib.googleapps.client import GoogleAppsClient
 from socialregistration.contrib.openid.views import OpenIDRedirect
 
