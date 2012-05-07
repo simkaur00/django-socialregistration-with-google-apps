@@ -1,4 +1,6 @@
 from openid.extensions import ax
+import urlparse
+from django.core.urlresolvers import reverse
 
 from socialregistration.contrib.openid.client import OpenIDClient
 
@@ -11,6 +13,10 @@ class GoogleAppsClient(OpenIDClient):
         'lastname': 'http://axschema.org/namePerson/last',
         'language': 'http://axschema.org/pref/language',
     }
+
+    def get_callback_url(self):
+        return urlparse.urljoin(self.get_realm(),
+            reverse('socialregistration:googleapps:callback'))
 
     def get_redirect_url(self):
         auth_request = self.consumer.begin(self.endpoint_url)
@@ -28,6 +34,17 @@ class GoogleAppsClient(OpenIDClient):
             self.get_callback_url())
 
         return redirect_url
+
+    def get_profile_properties(self):
+        props = {}
+
+        for prop in ['country', 'language']:
+            try:
+                props[prop] = getattr(self, prop)
+            except AttributeError:
+                pass
+
+        return props
 
     def complete(self, GET, path):
         super(GoogleAppsClient, self).complete(GET, path)
@@ -51,7 +68,7 @@ class GoogleAppsClient(OpenIDClient):
                                     ('lastname', 'last_name'),
                                     ('language', 'language')]:
                     try:
-                        setattr(self, prop, ax_response.get(self.available_info[alias]))
+                        setattr(self, prop, ax_response.get(self.available_info[alias])[0])
                     except KeyError:
                         # This information isn't available in the response.  The user may not have
                         # entered it or we may not have permission to access it.

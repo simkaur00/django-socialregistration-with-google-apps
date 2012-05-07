@@ -4,24 +4,24 @@ USE_HTTPS = bool(getattr(settings, 'SOCIALREGISTRATION_USE_HTTPS', False))
 
 class Client(object):
     """
-    Base class for OAuth/OpenID clients. Subclasses must implement all the 
+    Base class for OAuth/OpenID clients. Subclasses must implement all the
     methods.
     """
-    
+
     def is_https(self):
         """
-        Check if the site is using HTTPS. This is controlled with 
-        ``SOCIALREGISTRATION_USE_HTTPS`` setting. 
-        """        
+        Check if the site is using HTTPS. This is controlled with
+        ``SOCIALREGISTRATION_USE_HTTPS`` setting.
+        """
         return USE_HTTPS
-    
+
     def get_redirect_url(self, **kwargs):
         """
-        Returns the URL where we'll be requesting access/permissions from the 
+        Returns the URL where we'll be requesting access/permissions from the
         user.
         """
         raise NotImplementedError
-    
+
     def get_callback_url(self):
         """
         Returns the URL where the service should redirect the user back to
@@ -29,10 +29,10 @@ class Client(object):
         account the value returned by ``self.is_https()``.
         """
         raise NotImplementedError
-    
+
     def request(self, url, method="GET", params=None, headers=None, **kwargs):
         """
-        Make signed requests against ``url``. Signing method depends on the 
+        Make signed requests against ``url``. Signing method depends on the
         protocol used.
 
         :param url: The API endpoint to request
@@ -41,15 +41,25 @@ class Client(object):
         :type params: dict
         :param headers: Additional headers to be sent with the request
         :type headers: dict
-        """        
+        """
         raise NotImplementedError
-    
+
     def get_user_info(self):
         """
         Return the current user's information.
         """
         raise NotImplementedError
-    
+
+    def get_profile_properties(self):
+        """
+        Return a dictionary of properties to set on the user profile.  These
+        properties are not used to look up the profile, and they can override
+        the information currently in there if it's no longer current.
+        """
+
+        # Most clients don't require this, so we return an empty dictionary as a default.
+        return {}
+
     @staticmethod
     def get_session_key():
         """
