@@ -43,7 +43,7 @@ Subpackages
 :mod:`socialregistration.contrib` Packages
 ------------------------------------------
 .. toctree::
-    
+
     socialregistration.contrib.facebook
     socialregistration.contrib.foursquare
     socialregistration.contrib.github
@@ -51,5 +51,6 @@ Subpackages
     socialregistration.contrib.openid
     socialregistration.contrib.tumblr
     socialregistration.contrib.twitter
+    socialregistration.contrib.googleapps
 
 
