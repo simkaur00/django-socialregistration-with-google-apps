@@ -41,7 +41,7 @@ class GoogleAppsSetup(SetupCallback):
         """
         new_user = User()
 
-        for prop in ['first_name', 'last_name', 'email']
+        for prop in ['first_name', 'last_name', 'email']:
             try:
                 setattr(new_user, kw, getattr(client, kw))
             except AttributeError:
@@ -51,7 +51,7 @@ class GoogleAppsSetup(SetupCallback):
     def get_lookup_kwargs(self, request, client):
         kwargs_dict = { 'identity': client.get_identity() }
 
-        for kw in ['country', 'language']
+        for kw in ['country', 'language']:
             try:
                 kwargs_dict[kw] = getattr(client, kw)
             except AttributeError:
