@@ -1,0 +1,16 @@
+<form action="{% url socialregistration:googleapps:redirect %}" method="post">
+    {% csrf_token %}
+
+    {% if domain %}
+        <input type="hidden" name="domain" value="{{ domain }}" />
+    {% else %}
+        <input type="text" name="domain" />
+    {% endif %}
+
+    {% if button %}
+        <input type="image" onclick="this.form.submit();" src="{{ button }}" />
+    {% else %}
+        <input type="submit" value="Connect with Google Apps" />
+    {% endif %}
+
+</form>

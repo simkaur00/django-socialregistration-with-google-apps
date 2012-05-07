@@ -9,6 +9,11 @@ if 'socialregistration.contrib.openid' in settings.INSTALLED_APPS:
         url(r'^openid/', include('socialregistration.contrib.openid.urls',
             namespace='openid')))
 
+if 'socialregistration.contrib.googleapps' in settings.INSTALLED_APPS:
+    urlpatterns = urlpatterns + patterns('',
+        url(r'^googleapps/', include('socialregistration.contrib.googleapps.urls',
+            namespace='googleapps')))
+
 if 'socialregistration.contrib.twitter' in settings.INSTALLED_APPS:
     urlpatterns = urlpatterns + patterns('',
         url(r'^twitter/', include('socialregistration.contrib.twitter.urls',
