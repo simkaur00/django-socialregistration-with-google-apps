@@ -40,7 +40,7 @@ class GoogleAppsClient(OpenIDClient):
                                 ('firstname', 'first_name'),
                                 ('lastname', 'last_name'),
                                 ('language', 'language')]:
-                setattr(self, prop) = ax_response.get(self.available_info[alias])
+                setattr(self, prop, ax_response.get(self.available_info[alias]))
                 print '\n'
                 print '{} = {}'.format(prop, getattr(self, prop))
             print '\n\n\n'
