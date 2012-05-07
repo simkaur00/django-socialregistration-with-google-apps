@@ -13,4 +13,4 @@ class GoogleAppsProfile(OpenIDProfile):
         try:
             return 'Google Apps profile for %s' % (self.user)
         except User.DoesNotExist:
-            return 'OpenID profile for None, via provider None'
+            return 'Google Apps profile for None'
