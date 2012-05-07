@@ -108,7 +108,7 @@ class ProfileMixin(object):
             raise AttributeError('`self.profile` is `None`')
         return self.profile
 
-    def create_user(self):
+    def create_user(self, client=None):
         """
         Create and return an empty user model.
         """
@@ -192,7 +192,7 @@ class SessionMixin(object):
         for key in ['user', 'profile', 'client']:
             try: del request.session['%s%s' % (SESSION_KEY, key)]
             except KeyError: pass
-        
+
 
 class SignalMixin(object):
     """

@@ -31,14 +31,14 @@ class Setup(SocialRegistration, View):
         with ``SOCIALREGISTRATION_SETUP_FORM``.
         """
         return self.import_attribute(FORM_CLASS)
-    
+
     def get_username_function(self):
         """
         Return a function that can generate a username. The function
         is controlled with ``SOCIALREGISTRATION_GENERATE_USERNAME_FUNCTION``.
         """
         return self.import_attribute(USERNAME_FUNCTION)
-    
+
     def get_initial_data(self, request, user, profile, client):
         """
         Return initial data for the setup form. The function can be
@@ -57,8 +57,8 @@ class Setup(SocialRegistration, View):
     def generate_username_and_redirect(self, request, user, profile, client):
         """
         Generate a username and then redirect the user to the correct place.
-        This method is called when ``SOCIALREGISTRATION_GENERATE_USERNAME`` 
-        is set. 
+        This method is called when ``SOCIALREGISTRATION_GENERATE_USERNAME``
+        is set.
 
         :param request: The current request object
         :param user: The unsaved user object
@@ -66,26 +66,26 @@ class Setup(SocialRegistration, View):
         :param client: The API client
         """
         func = self.get_username_function()
-        
+
         user.username = func(user, profile, client)
         user.set_unusable_password()
         user.save()
-        
+
         profile.user = user
         profile.save()
-        
+
         user = profile.authenticate()
-        
+
         self.send_connect_signal(request, user, profile, client)
-        
+
         self.login(request, user)
-        
+
         self.send_login_signal(request, user, profile, client)
-        
+
         self.delete_session_data(request)
-        
+
         return HttpResponseRedirect(self.get_next(request))
-        
+
     def get(self, request):
         """
         When signing a new user up - either display a setup form, or
@@ -96,14 +96,14 @@ class Setup(SocialRegistration, View):
         except KeyError:
             return self.render_to_response(dict(
                 error=_("Social profile is missing from your session.")))
-         
+
         if GENERATE_USERNAME:
             return self.generate_username_and_redirect(request, user, profile, client)
-            
+
         form = self.get_form()(initial=self.get_initial_data(request, user, profile, client))
-        
+
         return self.render_to_response(dict(form=form))
-        
+
     def post(self, request):
         """
         Save the user and profile, login and send the right signals.
@@ -113,25 +113,25 @@ class Setup(SocialRegistration, View):
         except KeyError:
             return self.render_to_response(dict(
                 error=_("A social profile is missing from your session.")))
-        
+
         form = self.get_form()(request.POST, request.FILES,
             initial=self.get_initial_data(request, user, profile, client))
-        
+
         if not form.is_valid():
             return self.render_to_response(dict(form=form))
-        
+
         user, profile = form.save(request, user, profile, client)
-        
+
         user = profile.authenticate()
-        
+
         self.send_connect_signal(request, user, profile, client)
-        
+
         self.login(request, user)
-        
+
         self.send_login_signal(request, user, profile, client)
-        
+
         self.delete_session_data(request)
-        
+
         return HttpResponseRedirect(self.get_next(request))
 
 
@@ -153,13 +153,13 @@ class OAuthRedirect(SocialRegistration, View):
     :param client: The API client class that should be used.
     :param template_name: The error template.
     """
-    
+
     # The OAuth{1,2} client to be used
     client = None
-    
+
     # The template to render in case of errors
     template_name = None
-    
+
     def post(self, request):
         """
         Create a client, store it in the user's session and redirect the user
@@ -181,27 +181,27 @@ class OAuthCallback(SocialRegistration, View):
     :param client: The API client class that should be used.
     :param template_name: The error template.
     """
-    
+
     # The OAuth{1,2} client to be used
     client = None
-    
+
     # The template to render in case of errors
     template_name = None
-    
+
     def get_redirect(self):
         """
-        Return a URL that will set up the correct models if the 
+        Return a URL that will set up the correct models if the
         OAuth flow succeeded. Subclasses **must** override this
         method.
         """
         raise NotImplementedError
-    
+
     def get(self, request):
         """
-        Called after the user is redirected back to our application. 
+        Called after the user is redirected back to our application.
         Tries to:
 
-        - Complete the OAuth / OAuth2 flow 
+        - Complete the OAuth / OAuth2 flow
         - Redirect the user to another view that deals with login, connecting
           or user creation.
 
@@ -220,24 +220,24 @@ class SetupCallback(SocialRegistration, View):
     """
     Base class for OAuth and OAuth2 login / connects / registration.
     """
-    
+
     def get(self, request):
         """
-        Called after authorization was granted and the OAuth flow 
-        successfully completed. 
-        
+        Called after authorization was granted and the OAuth flow
+        successfully completed.
+
         Tries to:
 
         - Connect the remote account if the user is logged in already
-        - Log the user in if a local profile of the remote account 
+        - Log the user in if a local profile of the remote account
           exists already
         - Create a user and profile object if none of the above succeed
           and redirect the user further to either capture some data via
           form or generate a username automatically
         """
-        
+
         client = request.session[self.get_client().get_session_key()]
-        
+
         # Get the lookup dictionary to find the user's profile
         lookup_kwargs = self.get_lookup_kwargs(request, client)
 
@@ -246,7 +246,7 @@ class SetupCallback(SocialRegistration, View):
             profile, created = self.get_or_create_profile(request.user,
                 save=True, **lookup_kwargs)
 
-            # Profile existed - but got reconnected. Send the signal and 
+            # Profile existed - but got reconnected. Send the signal and
             # send the 'em where they were about to go in the first place.
             self.send_connect_signal(request, request.user, profile, client)
 
@@ -254,29 +254,29 @@ class SetupCallback(SocialRegistration, View):
 
         # Logged out user - let's see if we've got the identity saved already.
         # If so - just log the user in. If not, create profile and redirect
-        # to the setup view 
+        # to the setup view
         user = self.authenticate(**lookup_kwargs)
-        
+
         # No user existing - create a new one and redirect to the final setup view
         if user is None:
-            user = self.create_user()
+            user = self.create_user(client=client)
             profile = self.create_profile(user, **lookup_kwargs)
-            
+
             self.store_user(request, user)
             self.store_profile(request, profile)
             self.store_client(request, client)
-            
+
             return HttpResponseRedirect(reverse('socialregistration:setup'))
 
         # Inactive user - displaying an error message.
         if not user.is_active:
             return self.inactive_response()
-        
+
         # Active user with existing profile: login, send signal and redirect
         self.login(request, user)
-        
+
         profile = self.get_profile(user=user, **lookup_kwargs)
-        
+
         self.send_login_signal(request, user, profile, client)
-        
+
         return self.redirect(request)

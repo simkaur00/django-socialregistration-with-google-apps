@@ -32,8 +32,15 @@ class GoogleAppsClient(OpenIDClient):
         #self.result = self.consumer.complete(GET, urlparse.urljoin(self.get_realm(),
         #    path))
         if self.is_valid:
+            print '\n\n'
             ax_response = ax.FetchResponse.fromSuccessResponse(self.result)
-            print '\n\n\n'
-            print ax_response.data.keys()
-            print 'firstname = {}'.format(ax_response.get(self.available_info['firstname']))
+            requested_info = self.available_info.keys()
+            for alias, prop in [('country', 'country'),
+                                ('email','email'),
+                                ('firstname', 'first_name'),
+                                ('lastname', 'last_name'),
+                                ('language', 'language')]:
+                setattr(self, prop) = ax_response.get(self.available_info[alias])
+                print '\n'
+                print '{} = {}'.format(prop, getattr(self, prop))
             print '\n\n\n'
