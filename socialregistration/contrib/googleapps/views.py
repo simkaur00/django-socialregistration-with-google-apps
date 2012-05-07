@@ -43,10 +43,10 @@ class GoogleAppsSetup(SetupCallback):
 
         for prop in ['first_name', 'last_name', 'email']
             try:
-                kwargs_dict[kw] = getattr(client, kw)
+                setattr(new_user, kw, getattr(client, kw))
             except AttributeError:
                 pass
-        return User()
+        return new_user
 
     def get_lookup_kwargs(self, request, client):
         kwargs_dict = { 'identity': client.get_identity() }
