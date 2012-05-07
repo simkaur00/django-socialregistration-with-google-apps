@@ -35,14 +35,26 @@ class GoogleAppsClient(OpenIDClient):
         #    path))
         if self.is_valid:
             print '\n\n'
-            ax_response = ax.FetchResponse.fromSuccessResponse(self.result)
-            requested_info = self.available_info.keys()
-            for alias, prop in [('country', 'country'),
-                                ('email','email'),
-                                ('firstname', 'first_name'),
-                                ('lastname', 'last_name'),
-                                ('language', 'language')]:
-                setattr(self, prop, ax_response.get(self.available_info[alias]))
-                print '\n'
-                print '{} = {}'.format(prop, getattr(self, prop))
+            try:
+                ax_response = ax.FetchResponse.fromSuccessResponse(self.result)
+            except AttributeError:
+                # This can happen if we actually have a FailureResponse instead of a
+                # SuccessResponse object.  I don't totally understand how it's possible
+                # because in that case, 'is_valid' should return false.  Nevertheless,
+                # I can get this situation to occur if I try to reload the openid/callback
+                # page.  Therefore, when it does happen, we should ignore it and just
+                # complete the request.
+                pass
+            else:
+                requested_info = self.available_info.keys()
+                for alias, prop in [('country', 'country'),
+                                    ('email','email'),
+                                    ('firstname', 'first_name'),
+                                    ('lastname', 'last_name'),
+                                    ('language', 'language')]:
+                    try:
+                        setattr(self, prop, ax_response.get(self.available_info[alias]))
+                        print '{} = {}'.format(prop, getattr(self, prop))
+                    except KeyError:
+                        print '{} not available'.format(prop)
             print '\n\n\n'
