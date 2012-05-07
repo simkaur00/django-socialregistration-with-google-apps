@@ -1,3 +1,5 @@
+from openid.extensions import ax
+
 from socialregistration.contrib.openid.client import OpenIDClient
 
 class GoogleAppsClient(OpenIDClient):
