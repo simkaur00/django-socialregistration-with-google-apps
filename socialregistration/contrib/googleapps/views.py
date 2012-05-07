@@ -5,10 +5,15 @@ from socialregistration.contrib.openid.views import OpenIDRedirect
 class GoogleAppsRedirect(OpenIDRedirect):
     client = GoogleAppsClient
 
-    def post(self, request, domain):
-        return self.get(request, domain)
+    def post(self, request):
+        return self.get(request)
 
-    def get(self, request, domain):
+    def get(self, request):
+        try:
+            domain = request.REQUEST['domain']
+        except:
+            raise Exception('You must specify a domain to use with Google Apps')
+
         request.session['next'] = self.get_next(request)
 
         # We don't want to pass in the whole session object as this might not
