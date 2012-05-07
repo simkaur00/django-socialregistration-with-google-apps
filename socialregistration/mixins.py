@@ -114,20 +114,18 @@ class ProfileMixin(object):
         """
         return User()
 
-    def create_profile(self, user, save=False, **kwargs):
+    def create_profile(self, user, save=False, client=None, **kwargs):
         """
         Create a profile model.
 
         :param user: A user object
         :param save: If this is set, the profile will
             be saved to DB straight away
+        :param client: This is the authentication client that was used
+            for the log-in request
         :type save: bool
         """
-        profile = self.get_model()(user=user, **kwargs)
-
-        if save:
-            profile.save()
-
+        profile, created = self.get_or_create_profile(user, save, client, **kwargs)
         return profile
 
     def get_profile(self, **kwargs):
@@ -136,20 +134,36 @@ class ProfileMixin(object):
         """
         return self.get_model().objects.get(**kwargs)
 
-    def get_or_create_profile(self, user, save=False, **kwargs):
+    def get_or_create_profile(self, user, save=False, client=None, **kwargs):
         """
         Return a profile from DB or if there is none, create a new one.
 
         :param user: A user object
         :param save: If set, a new profile will be saved.
+        :param client: This is the authentication client that was used
+            for the log-in request
         :type save: bool
         """
+        props_to_set = client.get_profile_properties() if client is not None else {}
+        created = False
+        needs_saved = False
+        profile = None
+
         try:
             profile = self.get_model().objects.get(user=user, **kwargs)
-            return profile, False
         except self.get_model().DoesNotExist:
-            profile = self.create_profile(user, save=save, **kwargs)
-            return profile, True
+            profile = self.get_model()(user=user, **kwargs)
+            needs_saved = True
+
+        for prop in props_to_set.keys():
+            if props_to_set[prop] != getattr(profile, prop):
+                setattr(profile, prop, props_to_set[prop])
+                needs_saved = True
+
+        if save and needs_saved:
+            profile.save()
+
+        return profile, created
 
 class SessionMixin(object):
     """

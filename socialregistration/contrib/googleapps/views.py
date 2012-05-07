@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from socialregistration.views import SetupCallback
 from socialregistration.contrib.googleapps.client import GoogleAppsClient
 from socialregistration.contrib.googleapps.models import GoogleAppsProfile
-from socialregistration.contrib.openid.views import OpenIDRedirect
+from socialregistration.contrib.openid.views import OpenIDCallback, OpenIDRedirect
 
 class GoogleAppsRedirect(OpenIDRedirect):
     client = GoogleAppsClient
@@ -29,6 +29,10 @@ class GoogleAppsRedirect(OpenIDRedirect):
 
         return HttpResponseRedirect(client.get_redirect_url())
 
+
+class GoogleAppsCallback(OpenIDCallback):
+    setup_view = 'socialregistration:googleapps:setup'
+
 class GoogleAppsSetup(SetupCallback):
     template_name = 'socialregistration/openid/openid.html'
     profile = GoogleAppsProfile
@@ -42,22 +46,15 @@ class GoogleAppsSetup(SetupCallback):
         Create and return a new user model.  If the google apps authentication process
         returned the user's first/last name and email, also add those to the user model.
         """
+        print 'create_user called'
         new_user = User()
 
         for prop in ['first_name', 'last_name', 'email']:
             try:
-                setattr(new_user, kw, getattr(client, kw))
+                setattr(new_user, prop, getattr(client, prop))
             except AttributeError:
                 pass
         return new_user
 
     def get_lookup_kwargs(self, request, client):
-        kwargs_dict = { 'identity': client.get_identity() }
-
-        for kw in ['country', 'language']:
-            try:
-                kwargs_dict[kw] = getattr(client, kw)
-            except AttributeError:
-                pass
-
-        return kwargs_dict
+        return { 'identity': client.get_identity() }

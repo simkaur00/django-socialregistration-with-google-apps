@@ -244,7 +244,7 @@ class SetupCallback(SocialRegistration, View):
         # Logged in user connecting an account
         if request.user.is_authenticated():
             profile, created = self.get_or_create_profile(request.user,
-                save=True, **lookup_kwargs)
+                save=True, client=client, **lookup_kwargs)
 
             # Profile existed - but got reconnected. Send the signal and
             # send the 'em where they were about to go in the first place.
@@ -260,7 +260,7 @@ class SetupCallback(SocialRegistration, View):
         # No user existing - create a new one and redirect to the final setup view
         if user is None:
             user = self.create_user(client=client)
-            profile = self.create_profile(user, **lookup_kwargs)
+            profile = self.create_profile(user, client=client, **lookup_kwargs)
 
             self.store_user(request, user)
             self.store_profile(request, profile)
