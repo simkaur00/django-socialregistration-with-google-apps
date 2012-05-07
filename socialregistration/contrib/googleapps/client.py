@@ -31,10 +31,8 @@ class GoogleAppsClient(OpenIDClient):
 
     def complete(self, GET, path):
         super(GoogleAppsClient, self).complete(GET, path)
-        #self.result = self.consumer.complete(GET, urlparse.urljoin(self.get_realm(),
-        #    path))
+
         if self.is_valid:
-            print '\n\n'
             try:
                 ax_response = ax.FetchResponse.fromSuccessResponse(self.result)
             except AttributeError:
@@ -54,7 +52,8 @@ class GoogleAppsClient(OpenIDClient):
                                     ('language', 'language')]:
                     try:
                         setattr(self, prop, ax_response.get(self.available_info[alias]))
-                        print '{} = {}'.format(prop, getattr(self, prop))
                     except KeyError:
-                        print '{} not available'.format(prop)
-            print '\n\n\n'
+                        # This information isn't available in the response.  The user may not have
+                        # entered it or we may not have permission to access it.
+                        # Either way, life goes on.
+                        pass
