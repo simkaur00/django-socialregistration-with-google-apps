@@ -243,14 +243,40 @@ class SetupCallback(SocialRegistration, View):
 
         # Logged in user connecting an account
         if request.user.is_authenticated():
-            profile, created = self.get_or_create_profile(request.user,
-                save=True, client=client, **lookup_kwargs)
 
-            # Profile existed - but got reconnected. Send the signal and
-            # send the 'em where they were about to go in the first place.
-            self.send_connect_signal(request, request.user, profile, client)
+            should_connect_profile = False
 
-            return self.redirect(request)
+            # If the user already has a different profile connected
+            # through this client, we should log them out and try
+            # logging in a different user
+            try:
+                current_profile = self.get_profile(user=request.user)
+            except self.get_model().DoesNotExist:
+                # If there is no profile at all for this user yet, go
+                # ahead and make one as expected
+                should_connect_profile = True
+            else:
+                try:
+                    matching_profile = self.get_profile(user=request.user, **lookup_kwargs)
+                except self.get_model().DoesNotExist:
+                    # This user has a profile for the current profile
+                    # model, but it's not the one we just
+                    # connected. Ergo, logout.
+                    logout(request)
+                else:
+                    should_connect_profile = True
+
+            if should_connect_profile:
+                profile, created = self.get_or_create_profile(request.user,
+                                                              save=True,
+                                                              client=client,
+                                                              **lookup_kwargs)
+
+                # Profile existed - but got reconnected. Send the signal and
+                # send the 'em where they were about to go in the first place.
+                self.send_connect_signal(request, request.user, profile, client)
+
+                return self.redirect(request)
 
         # Logged out user - let's see if we've got the identity saved already.
         # If so - just log the user in. If not, create profile and redirect
