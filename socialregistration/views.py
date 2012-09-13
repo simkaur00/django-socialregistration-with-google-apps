@@ -262,7 +262,15 @@ class SetupCallback(SocialRegistration, View):
                     # This user has a profile for the current profile
                     # model, but it's not the one we just
                     # connected. Ergo, logout.
+
+                    # Logging out clears the session, which already
+                    # removes the redirect info, so save that and put
+                    # it back into the session after logging out.
+                    # This way, the user continues on to their
+                    # destination correctly.
+                    next_url = self.get_next(request)
                     logout(request)
+                    self.set_next(request, next_url)
                 else:
                     should_connect_profile = True
 

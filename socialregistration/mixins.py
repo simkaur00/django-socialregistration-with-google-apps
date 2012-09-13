@@ -41,6 +41,12 @@ class CommonMixin(TemplateResponseMixin):
         else:
             return getattr(settings, 'LOGIN_REDIRECT_URL', '/')
 
+    def set_next(self, request, next_url):
+        """
+        Sets the url to redirect to after the login / signup.
+        """
+        request.session['next'] = next_url
+
     def authenticate(self, **kwargs):
         """
         Authenticate a user against all configured authentication backends.
