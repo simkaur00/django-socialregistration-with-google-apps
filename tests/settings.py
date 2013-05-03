@@ -120,6 +120,7 @@ INSTALLED_APPS = (
     'socialregistration.contrib.tumblr',
     'socialregistration.contrib.twitter',
     'socialregistration.contrib.openid',
+    'socialregistration.contrib.googleapps',
     'tests.app',
 )
 
