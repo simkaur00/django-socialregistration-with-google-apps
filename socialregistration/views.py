@@ -85,8 +85,8 @@ class Setup(SocialRegistration, View):
     def generate_username_and_redirect(self, request, user, profile, client):
         """
         Generate a username and then redirect the user to the correct place.
-        This method is called when ``SOCIALREGISTRATION_GENERATE_USERNAME``
-        is set.
+        This method is called when ``SOCIALREGISTRATION_GENERATE_USERNAME`` 
+        is set. 
 
         :param request: The current request object
         :param user: The unsaved user object
@@ -234,7 +234,7 @@ class OAuthCallback(SocialRegistration, View):
 
     def get_redirect(self):
         """
-        Return a URL that will set up the correct models if the
+        Return a URL that will set up the correct models if the 
         OAuth flow succeeded. Subclasses **must** override this
         method.
         """
@@ -242,10 +242,9 @@ class OAuthCallback(SocialRegistration, View):
 
     def get(self, request):
         """
-        Called after the user is redirected back to our application.
+        Called after the user is redirected back to our application. 
         Tries to:
-
-        - Complete the OAuth / OAuth2 flow
+        - Complete the OAuth / OAuth2 flow 
         - Redirect the user to another view that deals with login, connecting
           or user creation.
 
@@ -272,13 +271,13 @@ class SetupCallback(SocialRegistration, TemplateView):
 
     def get(self, request):
         """
-        Called after authorization was granted and the OAuth flow
-        successfully completed.
-
+        Called after authorization was granted and the OAuth flow 
+        successfully completed. 
+        
         Tries to:
 
         - Connect the remote account if the user is logged in already
-        - Log the user in if a local profile of the remote account
+        - Log the user in if a local profile of the remote account 
           exists already
         - Create a user and profile object if none of the above succeed
           and redirect the user further to either capture some data via
@@ -295,8 +294,6 @@ class SetupCallback(SocialRegistration, TemplateView):
 
         # Logged in user (re-)connecting an account
         if request.user.is_authenticated():
-            should_connect_profile = False
-
             try:
                 profile = self.get_profile(**lookup_kwargs)
                 
@@ -313,52 +310,14 @@ class SetupCallback(SocialRegistration, TemplateView):
 
             self.send_connect_signal(request, request.user, profile, client)
 
-            # If the user already has a different profile connected
-            # through this client, we should log them out and try
-            # logging in a different user
-            try:
-                current_profile = self.get_profile(user=request.user)
-            except self.get_model().DoesNotExist:
-                # If there is no profile at all for this user yet, go
-                # ahead and make one as expected
-                should_connect_profile = True
-            else:
-                try:
-                    matching_profile = self.get_profile(user=request.user, **lookup_kwargs)
-                except self.get_model().DoesNotExist:
-                    # This user has a profile for the current profile
-                    # model, but it's not the one we just
-                    # connected. Ergo, logout.
-
-                    # Logging out clears the session, which already
-                    # removes the redirect info, so save that and put
-                    # it back into the session after logging out.
-                    # This way, the user continues on to their
-                    # destination correctly.
-                    next_url = self.get_next(request)
-                    logout(request)
-                    self.set_next(request, next_url)
-                else:
-                    should_connect_profile = True
-
-            if should_connect_profile:
-                profile, created = self.get_or_create_profile(request.user,
-                                                              save=True,
-                                                              client=client,
-                                                              **lookup_kwargs)
-
-                # Profile existed - but got reconnected. Send the signal and
-                # send the 'em where they were about to go in the first place.
-                self.send_connect_signal(request, request.user, profile, client)
-
-                return self.redirect(request)
+            return self.redirect(request)
 
         # Logged out user - let's see if we've got the identity saved already.
         # If so - just log the user in. If not, create profile and redirect
         # to the setup view 
 
         user = self.authenticate(**lookup_kwargs)
-
+        
         # No user existing - create a new one and redirect to the final setup view
         if user is None:
             if not ALLOW_OPENID_SIGNUPS and self.client is OpenIDClient:

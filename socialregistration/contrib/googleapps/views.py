@@ -39,14 +39,10 @@ class GoogleAppsSetup(SetupCallback):
     client = GoogleAppsClient
 
     def create_user(self, client=None):
-        # I think I need to include a client here or else I won't be able to look up
-        # information from it.
-
         """
         Create and return a new user model.  If the google apps authentication process
         returned the user's first/last name and email, also add those to the user model.
         """
-        print 'create_user called'
         new_user = User()
 
         for prop in ['first_name', 'last_name', 'email']:
