@@ -21,8 +21,8 @@ class Client(object):
         user.
         """
         raise NotImplementedError
-
-    def get_callback_url(self):
+    
+    def get_callback_url(self, **kwargs):
         """
         Returns the URL where the service should redirect the user back to
         once permissions/access were granted - or not. This should take in

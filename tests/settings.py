@@ -6,7 +6,7 @@ DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
-    # ('Your Name', 'your_email@example.com'),
+    ('Tester', 'test@example.com'),
 )
 
 MANAGERS = ADMINS
@@ -94,7 +94,7 @@ TEMPLATE_LOADERS = (
 #     'django.template.loaders.eggs.Loader',
 )
 
-ROOT_URLCONF = 'example.urls'
+ROOT_URLCONF = 'tests.urls'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
@@ -112,14 +112,15 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'socialregistration',
-    'socialregistration.contrib.openid',
-    'socialregistration.contrib.twitter',
-    'socialregistration.contrib.linkedin',
-    'socialregistration.contrib.github',
     'socialregistration.contrib.facebook',
     'socialregistration.contrib.foursquare',
+    'socialregistration.contrib.github',
+    'socialregistration.contrib.instagram',
+    'socialregistration.contrib.linkedin',
     'socialregistration.contrib.tumblr',
-    'example.app',
+    'socialregistration.contrib.twitter',
+    'socialregistration.contrib.openid',
+    'tests.app',
 )
 
 # A sample logging configuration. The only tangible logging
@@ -157,6 +158,7 @@ AUTHENTICATION_BACKENDS = (
     'socialregistration.contrib.facebook.auth.FacebookAuth',
     'socialregistration.contrib.foursquare.auth.FoursquareAuth',
     'socialregistration.contrib.tumblr.auth.TumblrAuth',
+    'socialregistration.contrib.instagram.auth.InstagramAuth',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -201,12 +203,19 @@ FOURSQUARE_CLIENT_ID = ''
 FOURSQUARE_CLIENT_SECRET = ''
 FOURSQUARE_REQUEST_PERMISSIONS = ''
 
-# Add your tumblr API keys here
+# Add your Tumblr API keys here
 TUMBLR_CONSUMER_KEY = ''
 TUMBLR_CONSUMER_SECRET_KEY = ''
 
+# Add your Instagram API keys here
+INSTAGRAM_CLIENT_ID = ''
+INSTAGRAM_CLIENT_SECRET = ''
+INSTAGRAM_REQUEST_PERMISSIONS = 'basic'
+
+
 SOCIALREGISTRATION_USE_HTTPS = False
 SOCIALREGISTRATION_GENERATE_USERNAME = False
+
 
 LOGIN_REDIRECT_URL = '/'
 

@@ -5,10 +5,12 @@ from django.http import HttpResponseRedirect
 from django.utils import importlib
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateResponseMixin
-
 from socialregistration import signals
 from socialregistration.settings import SESSION_KEY
+import urlparse
 
+ERROR_VIEW = getattr(settings, 'SOCIALREGISTRATION_ERROR_VIEW_FUNCTION',
+    None)
 
 class CommonMixin(TemplateResponseMixin):
     """
@@ -30,16 +32,22 @@ class CommonMixin(TemplateResponseMixin):
         """
         Returns a url to redirect to after the login / signup.
         """
-        if 'next' in request.session:
+        if 'next' in request.session: 
             next = request.session['next']
             del request.session['next']
-            return next
         elif 'next' in request.GET:
-            return request.GET.get('next')
+            next = request.GET.get('next')
         elif 'next' in request.POST:
-            return request.POST.get('next')
+            next = request.POST.get('next')
         else:
-            return getattr(settings, 'LOGIN_REDIRECT_URL', '/')
+            next = getattr(settings, 'LOGIN_REDIRECT_URL', '/')
+        
+        netloc = urlparse.urlparse(next)[1]
+        
+        if netloc and netloc != request.get_host():
+            next = getattr(settings, 'LOGIN_REDIRECT_URL', '/')
+
+        return next
 
     def set_next(self, request, next_url):
         """
@@ -59,12 +67,15 @@ class CommonMixin(TemplateResponseMixin):
         """
         return login(request, user)
 
-    def inactive_response(self):
+    def inactive_response(self, request):
         """
         Return an inactive message.
         """
-        return self.render_to_response({
-            'error': _("This user account is marked as inactive.")})
+        inactive_url = getattr(settings, 'LOGIN_INACTIVE_REDIRECT_URL', '')
+        if inactive_url:
+            return HttpResponseRedirect(inactive_url)
+        else:
+            return self.error_to_response(request, {'error': _("This user account is marked as inactive.")})
 
     def redirect(self, request):
         """
@@ -237,8 +248,14 @@ class SignalMixin(object):
         signals.connect.send(sender=profile.__class__, user=user, profile=profile,
             client=client, request=request)
 
+class ErrorMixin(object):
+    def error_to_response(self, request, error_dict, **context):
+        if ERROR_VIEW:
+            return self.import_attribute(ERROR_VIEW)(request, error_dict, **context)
+        return self.render_to_response(error_dict, **context)
+
 class SocialRegistration(CommonMixin, ClientMixin, ProfileMixin, SessionMixin,
-    SignalMixin):
+    SignalMixin, ErrorMixin):
     """
     Combine all mixins into a single class.
     """

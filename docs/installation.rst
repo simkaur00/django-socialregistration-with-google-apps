@@ -8,6 +8,12 @@ Requirements
 -  `python-openid <http://pypi.python.org/pypi/python-openid>`_
 -  `facebook-python-sdk <https://github.com/facebook/python-sdk>`_
 
+.. note::
+
+   The v0.5.x versions of `django-socialregistration` require at least
+   Django v1.3.2 due to the use of class based views. For previous
+   versions of Django please use `django-socialregistration` v0.4.x.
+
 Installation
 ============
 
@@ -35,19 +41,40 @@ The most basic configuration is to add ``socialregistration`` and
 
     To make sure that your redirects and callbacks work properly you'll have to set
     the domain in the `Sites app <https://docs.djangoproject.com/en/1.3/ref/contrib/sites/>`_
-    to the correct value.
+    to the correct value. 
+    
+    If you find yourself redirected to example.com, check your Sites configuration through the 
+    Django admin interface.
 
 Include ``socialregistration.urls`` into your root ``urls.py`` file
 
 ::
 
 	urlpatterns = patterns('',
+    	# Here be other urls ...
 		url(r'^social/', include('socialregistration.urls',
 			namespace = 'socialregistration')))
 
 .. note::
 
 	The ``namespace = 'socialregistration'`` argument is required.
+
+Include ``django.core.context_processors.request`` in your TEMPLATE_CONTEXT_PROCESSORS in your settings file
+
+::
+
+	TEMPLATE_CONTEXT_PROESSORS = (
+        'django.core.context_processors.request',
+	)
+
+.. note::
+
+	When your views render templates that include social registration tags (such as {% twitter_button %}) 
+	they will need to pass the RequestContext in as a parameter
+
+::
+
+	return render_to_response('template.html', c, context_instance=RequestContext(request))
 
 Note on sessions
 ================

@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.conf.urls.defaults import *
+from socialregistration.compat.urls import *
 from socialregistration.views import Logout, Setup
 
 urlpatterns = patterns('',)
@@ -43,6 +43,16 @@ if 'socialregistration.contrib.tumblr' in settings.INSTALLED_APPS:
     urlpatterns = urlpatterns + patterns('',
         url(r'^tumblr/', include('socialregistration.contrib.tumblr.urls',
             namespace='tumblr')))
+    
+if 'socialregistration.contrib.instagram' in settings.INSTALLED_APPS:
+    urlpatterns = urlpatterns + patterns('',
+        url(r'^instagram/', include('socialregistration.contrib.instagram.urls',
+            namespace='instagram')))
+
+if 'socialregistration.contrib.google' in settings.INSTALLED_APPS:
+    urlpatterns = urlpatterns + patterns('',
+        url(r'^google/', include('socialregistration.contrib.google.urls',
+            namespace='google')))
 
 urlpatterns = urlpatterns + patterns('',
     url(r'^setup/$', Setup.as_view(), name='setup'),

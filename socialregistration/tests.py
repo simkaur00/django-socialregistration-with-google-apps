@@ -22,14 +22,19 @@ class TemplateTagTest(object):
     
     def test_tag_renders_correctly(self):
         load, button = self.get_tag()
-        
+
         tpl = """{%% load %s %%}{%% %s %%}""" % (load, button)
         
         self.assertTrue('form' in template.Template(tpl).render(template.Context({'request': None})))
         
-        tpl = """{%% load %s %%}{%% %s 'custom/button/url.jpg' %%}""" % (load, button)
+        tpl = """{%% load %s %%}{%% %s STATIC_URL 'custom/button/url.jpg' %%}""" % (load, button)
         
-        self.assertTrue('custom/button/url.jpg' in template.Template(tpl).render(template.Context({'request': None})))
+        rendered = template.Template(tpl).render(template.Context({
+                    'request': None,
+                    'STATIC_URL': '/static/'}))
+
+        self.assertTrue('custom/button/url.jpg' in rendered)
+        self.assertTrue('/static/' in rendered)
 
 
 def get_mock_func(func):
@@ -79,12 +84,13 @@ class OAuthTest(object):
         """
         raise NotImplementedError
     
-    def create_profile(self):
+    def create_profile(self, user):
         raise NotImplementedError
     
-    def create_user(self):
+    def create_user(self, is_active=True):
         user = User.objects.create(username='alen')
         user.set_password('test')
+        user.is_active = is_active
         user.save()
         return user
     
@@ -115,7 +121,7 @@ class OAuthTest(object):
     def flow(self):
         self.redirect()
         self.callback()
-        self.setup_callback()
+        return self.setup_callback()
     
     def test_redirect_should_redirect_a_user(self,):
         response = self.redirect()
@@ -151,7 +157,7 @@ class OAuthTest(object):
         self.create_profile(user)
 
         self.flow()
-
+        
         self.assertEqual(1, self.client.session['_auth_user_id'])
     
     def test_logged_in_user_should_be_connected(self):
@@ -163,6 +169,23 @@ class OAuthTest(object):
         self.flow()
         
         self.assertEqual(1, self.profile.objects.filter(user=user).count())
+    
+    def test_only_one_user_can_connect_with_a_provider(self):
+        user = self.create_user()
+        self.create_profile(user)
+        
+        other = User.objects.create(username='other')
+        other.is_active = True 
+        other.set_password('test')
+        other.save()
+        
+        self.client.login(username='other', password='test')
+        
+        response = self.flow()
+        
+        self.assertEqual(200, response.status_code, response.content)
+        self.assertContains(response, 'This profile is already connected to another user account')
+        
     
     def test_logging_in_should_send_the_login_signal(self):
         counter = self.get_counter()
@@ -195,7 +218,32 @@ class OAuthTest(object):
         self.flow()
         
         self.assertEqual(1, counter.counter)
+    
+    def test_setup_callback_should_indicate_an_inactive_user(self):
+        user = self.create_user(is_active=False)
+        self.create_profile(user)
 
+        self.redirect()
+        self.callback()
+        response = self.setup_callback()
+
+        self.assertEqual(200, response.status_code, response.content)
+        self.assertContains(response, "inactive", 1)
+
+    def test_setup_callback_should_redirect_an_inactive_user(self):
+        settings.LOGIN_INACTIVE_REDIRECT_URL = '/inactive/'
+
+        user = self.create_user(is_active=False)
+        self.create_profile(user)
+
+        self.redirect()
+        self.callback()
+        response = self.setup_callback()
+
+        self.assertEqual(302, response.status_code, response.content)
+        self.assertTrue('/inactive/' in response['Location'])
+
+        settings.LOGIN_INACTIVE_REDIRECT_URL = False
 
 class OAuth2Test(OAuthTest):
 
